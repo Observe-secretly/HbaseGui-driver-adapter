@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.Vector;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.hadoop.conf.Configuration;
@@ -15,6 +16,7 @@ import org.apache.hadoop.hbase.CellUtil;
 import org.apache.hadoop.hbase.HBaseConfiguration;
 import org.apache.hadoop.hbase.HColumnDescriptor;
 import org.apache.hadoop.hbase.HTableDescriptor;
+import org.apache.hadoop.hbase.NamespaceDescriptor;
 import org.apache.hadoop.hbase.TableName;
 import org.apache.hadoop.hbase.client.Admin;
 import org.apache.hadoop.hbase.client.Connection;
@@ -74,7 +76,7 @@ public class HbaseUtil {
      * @param tableName 表名
      * @param columnFamilys 列族
      */
-    public static void createTable(String tableName, String... columnFamilys) {
+    public static void createTable(String tableName, String... columnFamilys) throws Exception {
         Admin hBaseAdmin = null;
         try {
             Connection connection = getConn();
@@ -89,8 +91,6 @@ public class HbaseUtil {
                 tableDescriptor.addFamily(new HColumnDescriptor(columnFamily));
             }
             hBaseAdmin.createTable(tableDescriptor);
-        } catch (Exception e) {
-            e.printStackTrace();
         } finally {
             if (hBaseAdmin != null) {
                 try {
@@ -108,7 +108,7 @@ public class HbaseUtil {
      * @param tableName 表名
      * @param columns 请仔细查看ColumnFamily对象的用法
      */
-    public static void insertData(TableName tableName, String rowKey, ColumnFamily... columns) {
+    public static void insertData(TableName tableName, String rowKey, ColumnFamily... columns) throws Exception {
         Table table = null;
         try {
             Connection connection = getConn();
@@ -123,8 +123,6 @@ public class HbaseUtil {
 
             }
             table.put(put);
-        } catch (Exception e) {
-            e.printStackTrace();
         } finally {
             try {
                 table.close();
@@ -140,7 +138,7 @@ public class HbaseUtil {
      * @param tableName
      * @param rowList
      */
-    public static void batchInsertData(TableName tableName, List<Row> rowList) {
+    public static void batchInsertData(TableName tableName, List<Row> rowList) throws Exception {
         Table table = null;
         try {
             Connection connection = getConn();
@@ -164,8 +162,6 @@ public class HbaseUtil {
             Object[] results = new Object[puts.size()];
             table.batch(puts, results);
 
-        } catch (Exception e) {
-            e.printStackTrace();
         } finally {
             try {
                 table.close();
@@ -211,7 +207,7 @@ public class HbaseUtil {
     public static HBasePageModel scanResultByPageFilter(String tableName, byte[] startRowKey, byte[] endRowKey,
                                                         List<Object> filtersObj, int maxVersions,
                                                         HBasePageModel pageModel, boolean firstPage,
-                                                        Map<String, String> typeMapping) {
+                                                        Map<String, String> typeMapping) throws Exception {
         TableName habseTableName = TableName.valueOf(tableName);
         FilterList filterList = null;
         if (filtersObj != null && filtersObj.size() > 0) {
@@ -308,8 +304,6 @@ public class HbaseUtil {
             }
             scanner.close();
             System.out.println("数据组装耗时：" + (System.currentTimeMillis() - s));
-        } catch (Exception e) {
-            e.printStackTrace();
         } finally {
             try {
                 table.close();
@@ -341,7 +335,7 @@ public class HbaseUtil {
      * @param filterList 过滤器集合，可以为null。
      * @return
      */
-    public static Result selectFirstResultRow(TableName tableName, FilterList filterList) {
+    public static Result selectFirstResultRow(TableName tableName, FilterList filterList) throws Exception {
         if (tableName == null) return null;
         Table table = null;
         try {
@@ -361,8 +355,6 @@ public class HbaseUtil {
                     return rs;
                 }
             }
-        } catch (Exception e) {
-            e.printStackTrace();
         } finally {
             try {
                 table.close();
@@ -379,7 +371,7 @@ public class HbaseUtil {
      * @param tablename
      * @param rowkey
      */
-    public static void deleteRow(String tablename, String... rowkey) {
+    public static void deleteRow(String tablename, String... rowkey) throws Exception {
         Table table = null;
         try {
             TableName hbaseTableName = TableName.valueOf(tablename);
@@ -392,8 +384,6 @@ public class HbaseUtil {
 
             table.delete(list);
 
-        } catch (Exception e) {
-            e.printStackTrace();
         } finally {
             try {
                 table.close();
@@ -409,7 +399,7 @@ public class HbaseUtil {
      * 
      * @return
      */
-    public static String[] getListTableNames() {
+    public static String[] getListTableNames() throws Exception {
         Admin admin = null;
         try {
             Connection connection = getConn();
@@ -421,8 +411,6 @@ public class HbaseUtil {
                 result[i] = tables[i].getNameAsString();
             }
             return result;
-        } catch (Exception e) {
-            e.printStackTrace();
         } finally {
             try {
                 admin.close();
@@ -430,7 +418,6 @@ public class HbaseUtil {
                 e.printStackTrace();
             }
         }
-        return null;
 
     }
 
@@ -440,7 +427,7 @@ public class HbaseUtil {
      * @param tablename
      * @throws IOException
      */
-    public static void dropTable(String tablename) {
+    public static void dropTable(String tablename) throws Exception {
 
         Admin hBaseAdmin = null;
         try {
@@ -449,8 +436,6 @@ public class HbaseUtil {
             hBaseAdmin = connection.getAdmin();
             hBaseAdmin.disableTable(hbaseTableName);
             hBaseAdmin.deleteTable(hbaseTableName);
-        } catch (Exception e) {
-            e.printStackTrace();
         } finally {
             if (hBaseAdmin != null) {
                 try {
@@ -468,7 +453,7 @@ public class HbaseUtil {
      * @param tablename
      * @param preserveSplits
      */
-    public static void truncateTable(String tablename, boolean preserveSplits) {
+    public static void truncateTable(String tablename, boolean preserveSplits) throws Exception {
 
         Admin hBaseAdmin = null;
         try {
@@ -478,8 +463,6 @@ public class HbaseUtil {
             hBaseAdmin.disableTable(hbaseTableName);
             hBaseAdmin.truncateTable(hbaseTableName, preserveSplits);
             hBaseAdmin.enableTable(hbaseTableName);
-        } catch (Exception e) {
-            e.printStackTrace();
         } finally {
             if (hBaseAdmin != null) {
                 try {
@@ -497,15 +480,13 @@ public class HbaseUtil {
      * @param tablename
      * @return
      */
-    public static HTableDescriptor getDescribe(TableName tablename) {
+    public static HTableDescriptor getDescribe(TableName tablename) throws Exception {
         Table table = null;
         try {
             Connection connection = getConn();
             table = connection.getTable(tablename);
             return table.getTableDescriptor();
 
-        } catch (Exception e) {
-            e.printStackTrace();
         } finally {
             try {
                 table.close();
@@ -513,10 +494,9 @@ public class HbaseUtil {
                 e.printStackTrace();
             }
         }
-        return null;
     }
 
-    public static List<HbaseQualifier> getTableQualifiers(String tableName) {
+    public static List<HbaseQualifier> getTableQualifiers(String tableName) throws Exception {
         HBasePageModel dataModel = new HBasePageModel(1, tableName);
         dataModel = HbaseUtil.scanResultByPageFilter(tableName, null, null, null, Integer.MAX_VALUE, dataModel, true,
                                                      null);
@@ -561,7 +541,7 @@ public class HbaseUtil {
      * @param tablename
      * @return
      */
-    public static long rowCount(String tableName) {
+    public static long rowCount(String tableName) throws Exception {
         Table table = null;
         long rowCount = 0;
         try {
@@ -574,8 +554,6 @@ public class HbaseUtil {
             for (Result result : resultScanner) {
                 rowCount += result.size();
             }
-        } catch (Exception e) {
-            e.printStackTrace();
         } finally {
             try {
                 table.close();
@@ -584,6 +562,47 @@ public class HbaseUtil {
             }
         }
         return rowCount;
+    }
+
+    /**
+     * 获取所有的namespace
+     * 
+     * @return
+     * @throws Exception
+     */
+    public static Vector<String> listNameSpace() throws Exception {
+        Vector<String> result = new Vector<>();
+        Admin admin = null;
+        try {
+            Connection connection = getConn();
+            admin = connection.getAdmin();
+            NamespaceDescriptor[] namespaces = admin.listNamespaceDescriptors();
+            for (NamespaceDescriptor item : namespaces) {
+                result.add(item.getName());
+            }
+        } finally {
+            try {
+                admin.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        return result;
+    }
+
+    public static void createNameSpace(String name) throws Exception {
+        Admin admin = null;
+        try {
+            Connection connection = getConn();
+            admin = connection.getAdmin();
+            admin.createNamespace(NamespaceDescriptor.create(name).build());
+        } finally {
+            try {
+                admin.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
     }
 
 }
