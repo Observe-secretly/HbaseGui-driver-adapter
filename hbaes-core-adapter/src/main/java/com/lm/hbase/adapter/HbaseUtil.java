@@ -250,7 +250,7 @@ public class HbaseUtil {
             }
 
             Scan scan = new Scan();
-            scan.setCaching(10);
+            scan.setCaching(100);
             scan.setStartRow(pageModel.getPageStartRowKey());
             if (pageModel.getMinStamp() != 0 && pageModel.getMaxStamp() != 0) {
                 scan.setTimeRange(pageModel.getMinStamp(), pageModel.getMaxStamp());
