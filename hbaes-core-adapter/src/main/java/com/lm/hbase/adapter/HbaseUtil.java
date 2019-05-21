@@ -605,4 +605,19 @@ public class HbaseUtil {
         }
     }
 
+    public static void deleteNameSpace(String name) throws Exception {
+        Admin admin = null;
+        try {
+            Connection connection = getConn();
+            admin = connection.getAdmin();
+            admin.deleteNamespace(name);
+        } finally {
+            try {
+                admin.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
 }
