@@ -31,8 +31,10 @@ import org.apache.hadoop.hbase.filter.Filter;
 import org.apache.hadoop.hbase.filter.FilterList;
 import org.apache.hadoop.hbase.filter.FirstKeyOnlyFilter;
 import org.apache.hadoop.hbase.filter.PageFilter;
+import org.apache.hadoop.hbase.io.compress.Compression.Algorithm;
 import org.apache.hadoop.hbase.util.Bytes;
 
+import com.lm.hbase.adapter.ColumnFamilyParam.ColumnFamilyFieldEnum;
 import com.lm.hbase.adapter.entity.HBasePageModel;
 import com.lm.hbase.adapter.entity.HbaseQualifier;
 import com.lm.hbase.adapter.entity.QualifierValue;
@@ -67,6 +69,64 @@ public class HbaseUtil {
     public static void close() throws IOException {
         if (connection != null) {
             connection.close();
+        }
+    }
+
+    /**
+     * 创建表。提供更加高级的功能创建hbase表。
+     * 
+     * @param tableName 表名
+     * @param columnFamilys 列族
+     */
+    public static void createTable(String tableName, byte[][] splitKeys, byte[] startKey, byte[] endKey, int numRegions,
+                                   ColumnFamilyParam... columnFamilys) throws Exception {
+        Admin hBaseAdmin = null;
+        try {
+            Connection connection = getConn();
+            hBaseAdmin = connection.getAdmin();
+            TableName hbaseTableName = TableName.valueOf(tableName);
+
+            if (hBaseAdmin.tableExists(hbaseTableName)) {
+                throw new Exception(tableName + " is exist");
+            }
+            HTableDescriptor tableDescriptor = new HTableDescriptor(hbaseTableName);
+            for (ColumnFamilyParam item : columnFamilys) {
+
+                Object familyName = item.get(ColumnFamilyFieldEnum.COLUMN_FAMILY_NAME);
+                if (familyName == null) {
+                    throw new Exception("COLUMN_FAMILY_NAME is null");
+                }
+                HColumnDescriptor columnDescriptor = new HColumnDescriptor(familyName.toString());
+                columnDescriptor.setCompressionType(Algorithm.SNAPPY);
+
+                Object timeToLive = item.get(ColumnFamilyFieldEnum.TIME_TO_LIVE);
+                if (timeToLive != null) {
+                    columnDescriptor.setTimeToLive(Integer.parseInt(timeToLive.toString()));
+                }
+
+                Object maxVersion = item.get(ColumnFamilyFieldEnum.MAX_VERSION);
+                if (maxVersion != null) {
+                    columnDescriptor.setMaxVersions(Integer.parseInt(maxVersion.toString()));
+                }
+
+                tableDescriptor.addFamily(columnDescriptor);
+
+            }
+            if (splitKeys != null) {
+                hBaseAdmin.createTable(tableDescriptor, splitKeys);
+            } else if (startKey != null && endKey != null && numRegions > 0) {
+                hBaseAdmin.createTable(tableDescriptor, startKey, endKey, numRegions);
+            } else {
+                hBaseAdmin.createTable(tableDescriptor);
+            }
+        } finally {
+            if (hBaseAdmin != null) {
+                try {
+                    hBaseAdmin.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
         }
     }
 
