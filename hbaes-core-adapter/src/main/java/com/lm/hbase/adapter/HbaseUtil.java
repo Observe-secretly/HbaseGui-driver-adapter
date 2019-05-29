@@ -43,6 +43,10 @@ public class HbaseUtil {
 
     private static Connection connection = null;
 
+    public static String getVersion() {
+        return "aliyun-1.1.2";
+    }
+
     public static void init(String zkPort, String zkQuorum, String hbaseMaster, String znodeParent) throws IOException {
         System.out.println(zkQuorum);
         System.out.println("初始化Hbase链接...");
