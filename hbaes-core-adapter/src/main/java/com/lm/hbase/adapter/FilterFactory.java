@@ -14,9 +14,9 @@ import org.apache.hadoop.hbase.filter.SingleColumnValueFilter;
 import org.apache.hadoop.hbase.filter.SubstringComparator;
 import org.apache.hadoop.hbase.util.Bytes;
 
-public class FilterFactory {
+public class FilterFactory implements FilterFactoryInterface {
 
-    public static List<Filter> filterConvert(List<Object> filters) {
+    public List<Filter> filterConvert(List<Object> filters) {
         List<Filter> result = new ArrayList<>();
 
         for (Object item : filters) {
@@ -35,7 +35,7 @@ public class FilterFactory {
      * 
      * @return
      */
-    public static List<Class> getAllComparatorClass() {
+    public List<Class> getAllComparatorClass() {
         List<Class> result = new ArrayList<>();
         result.add(SubstringComparator.class);
         result.add(BinaryPrefixComparator.class);
@@ -49,7 +49,7 @@ public class FilterFactory {
      * 
      * @return
      */
-    public static List<String> getCompareOpSimpleList() {
+    public List<String> getCompareOpSimpleList() {
         List<String> list = new ArrayList<String>();
         list.add("=");
         list.add(">");
@@ -60,7 +60,7 @@ public class FilterFactory {
         return list;
     }
 
-    public static Object createRowkeyPrefixFilter(byte[] rowkey) {
+    public Object createRowkeyPrefixFilter(byte[] rowkey) {
         return new PrefixFilter(rowkey);
 
     }
@@ -98,9 +98,8 @@ public class FilterFactory {
      * @param fieldValue
      * @return
      */
-    public static Object createSingleColumnValueFilter(byte[] family, byte[] qualifier, String compareOpSimple,
-                                                       String comparatorClassName, String fieldType,
-                                                       String fieldValue) {
+    public Object createSingleColumnValueFilter(byte[] family, byte[] qualifier, String compareOpSimple,
+                                                String comparatorClassName, String fieldType, String fieldValue) {
         SingleColumnValueFilter filter = new SingleColumnValueFilter(family, qualifier, getCompareOp(compareOpSimple),
                                                                      getComparator(fieldType, fieldValue,
                                                                                    comparatorClassName));
@@ -113,7 +112,7 @@ public class FilterFactory {
      * 
      * @return
      */
-    private static CompareOp getCompareOp(String operator) {
+    private CompareOp getCompareOp(String operator) {
 
         switch (operator) {
             case "=":
@@ -135,7 +134,7 @@ public class FilterFactory {
 
     }
 
-    private static ByteArrayComparable getComparator(String fieldType, String filedValue, String comparatorClassName) {
+    private ByteArrayComparable getComparator(String fieldType, String filedValue, String comparatorClassName) {
 
         if (comparatorClassName.toLowerCase().endsWith(BinaryPrefixComparator.class.getSimpleName().toLowerCase())) {// 前缀比较器
             return new BinaryPrefixComparator(convertValue(fieldType, filedValue));
@@ -149,7 +148,7 @@ public class FilterFactory {
         return null;
     }
 
-    private static byte[] convertValue(String filedType, String filedValue) {
+    private byte[] convertValue(String filedType, String filedValue) {
 
         try {
             switch (filedType.toLowerCase()) {
