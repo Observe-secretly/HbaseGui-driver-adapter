@@ -39,15 +39,15 @@ import com.lm.hbase.adapter.entity.HBasePageModel;
 import com.lm.hbase.adapter.entity.HbaseQualifier;
 import com.lm.hbase.adapter.entity.QualifierValue;
 
-public class HbaseUtil {
+public class HbaseAdapter implements HbaseAdapterInterface {
 
-    private static Connection connection = null;
+    private Connection connection = null;
 
-    public static String getVersion() {
+    public String getVersion() {
         return "1.3.2";
     }
 
-    public static void init(String zkPort, String zkQuorum, String hbaseMaster, String znodeParent) throws IOException {
+    public void init(String zkPort, String zkQuorum, String hbaseMaster, String znodeParent) throws IOException {
         System.out.println(zkQuorum);
         System.out.println("初始化Hbase链接...");
         Configuration configuration = HBaseConfiguration.create();
@@ -63,14 +63,14 @@ public class HbaseUtil {
 
     }
 
-    public static Connection getConn() throws Exception {
+    public Connection getConn() throws Exception {
         if (connection == null) {
             throw new Exception("HbaseUtil is not initialized");
         }
         return connection;
     }
 
-    public static void close() throws IOException {
+    public void close() throws IOException {
         if (connection != null) {
             connection.close();
         }
@@ -82,8 +82,8 @@ public class HbaseUtil {
      * @param tableName 表名
      * @param columnFamilys 列族
      */
-    public static void createTable(String tableName, byte[][] splitKeys, byte[] startKey, byte[] endKey, int numRegions,
-                                   ColumnFamilyParam... columnFamilys) throws Exception {
+    public void createTable(String tableName, byte[][] splitKeys, byte[] startKey, byte[] endKey, int numRegions,
+                            ColumnFamilyParam... columnFamilys) throws Exception {
         Admin hBaseAdmin = null;
         try {
             Connection connection = getConn();
@@ -140,7 +140,7 @@ public class HbaseUtil {
      * @param tableName 表名
      * @param columnFamilys 列族
      */
-    public static void createTable(String tableName, String... columnFamilys) throws Exception {
+    public void createTable(String tableName, String... columnFamilys) throws Exception {
         Admin hBaseAdmin = null;
         try {
             Connection connection = getConn();
@@ -172,7 +172,7 @@ public class HbaseUtil {
      * @param tableName 表名
      * @param columns 请仔细查看ColumnFamily对象的用法
      */
-    public static void insertData(TableName tableName, String rowKey, ColumnFamily... columns) throws Exception {
+    public void insertData(TableName tableName, String rowKey, ColumnFamily... columns) throws Exception {
         Table table = null;
         try {
             Connection connection = getConn();
@@ -202,7 +202,7 @@ public class HbaseUtil {
      * @param tableName
      * @param rowList
      */
-    public static void batchInsertData(TableName tableName, List<Row> rowList) throws Exception {
+    public void batchInsertData(TableName tableName, List<Row> rowList) throws Exception {
         Table table = null;
         try {
             Connection connection = getConn();
@@ -235,7 +235,7 @@ public class HbaseUtil {
         }
     }
 
-    private static String getDisplayValue(String type, byte[] b) {
+    private String getDisplayValue(String type, byte[] b) {
         if (StringUtils.isEmpty(type)) {
             return Bytes.toString(b);
         }
@@ -268,14 +268,13 @@ public class HbaseUtil {
 
     }
 
-    public static HBasePageModel scanResultByPageFilter(String tableName, byte[] startRowKey, byte[] endRowKey,
-                                                        List<Object> filtersObj, int maxVersions,
-                                                        HBasePageModel pageModel, boolean firstPage,
-                                                        Map<String, String> typeMapping) throws Exception {
+    public HBasePageModel scanResultByPageFilter(String tableName, byte[] startRowKey, byte[] endRowKey,
+                                                 List<Object> filtersObj, int maxVersions, HBasePageModel pageModel,
+                                                 boolean firstPage, Map<String, String> typeMapping) throws Exception {
         TableName habseTableName = TableName.valueOf(tableName);
         FilterList filterList = null;
         if (filtersObj != null && filtersObj.size() > 0) {
-            List<Filter> realFilters = FilterFactory.filterConvert(filtersObj);
+            List<Filter> realFilters = new FilterFactory().filterConvert(filtersObj);
             if (realFilters != null && realFilters.size() > 0) {
                 filterList = new FilterList(realFilters);
             }
@@ -399,7 +398,7 @@ public class HbaseUtil {
      * @param filterList 过滤器集合，可以为null。
      * @return
      */
-    public static Result selectFirstResultRow(TableName tableName, FilterList filterList) throws Exception {
+    public Result selectFirstResultRow(TableName tableName, FilterList filterList) throws Exception {
         if (tableName == null) return null;
         Table table = null;
         try {
@@ -435,7 +434,7 @@ public class HbaseUtil {
      * @param tablename
      * @param rowkey
      */
-    public static void deleteRow(String tablename, String... rowkey) throws Exception {
+    public void deleteRow(String tablename, String... rowkey) throws Exception {
         Table table = null;
         try {
             TableName hbaseTableName = TableName.valueOf(tablename);
@@ -463,7 +462,7 @@ public class HbaseUtil {
      * 
      * @return
      */
-    public static String[] getListTableNames() throws Exception {
+    public String[] getListTableNames() throws Exception {
         Admin admin = null;
         try {
             Connection connection = getConn();
@@ -491,7 +490,7 @@ public class HbaseUtil {
      * @param tablename
      * @throws IOException
      */
-    public static void dropTable(String tablename) throws Exception {
+    public void dropTable(String tablename) throws Exception {
 
         Admin hBaseAdmin = null;
         try {
@@ -517,7 +516,7 @@ public class HbaseUtil {
      * @param tablename
      * @param preserveSplits
      */
-    public static void truncateTable(String tablename, boolean preserveSplits) throws Exception {
+    public void truncateTable(String tablename, boolean preserveSplits) throws Exception {
 
         Admin hBaseAdmin = null;
         try {
@@ -544,7 +543,7 @@ public class HbaseUtil {
      * @param tablename
      * @return
      */
-    public static HTableDescriptor getDescribe(TableName tablename) throws Exception {
+    public HTableDescriptor getDescribe(TableName tablename) throws Exception {
         Table table = null;
         try {
             Connection connection = getConn();
@@ -560,10 +559,9 @@ public class HbaseUtil {
         }
     }
 
-    public static List<HbaseQualifier> getTableQualifiers(String tableName) throws Exception {
+    public List<HbaseQualifier> getTableQualifiers(String tableName) throws Exception {
         HBasePageModel dataModel = new HBasePageModel(1, tableName);
-        dataModel = HbaseUtil.scanResultByPageFilter(tableName, null, null, null, Integer.MAX_VALUE, dataModel, true,
-                                                     null);
+        dataModel = scanResultByPageFilter(tableName, null, null, null, Integer.MAX_VALUE, dataModel, true, null);
 
         List<HbaseQualifier> result = new ArrayList<>();
 
@@ -583,7 +581,7 @@ public class HbaseUtil {
 
     }
 
-    public static String getClusterStatus() throws Exception {
+    public String getClusterStatus() throws Exception {
         Admin admin = null;
         try {
             Connection connection = getConn();
@@ -605,7 +603,7 @@ public class HbaseUtil {
      * @param tablename
      * @return
      */
-    public static long rowCount(String tableName) throws Exception {
+    public long rowCount(String tableName) throws Exception {
         Table table = null;
         long rowCount = 0;
         try {
@@ -634,7 +632,7 @@ public class HbaseUtil {
      * @return
      * @throws Exception
      */
-    public static Vector<String> listNameSpace() throws Exception {
+    public Vector<String> listNameSpace() throws Exception {
         Vector<String> result = new Vector<>();
         Admin admin = null;
         try {
@@ -654,7 +652,7 @@ public class HbaseUtil {
         return result;
     }
 
-    public static void createNameSpace(String name) throws Exception {
+    public void createNameSpace(String name) throws Exception {
         Admin admin = null;
         try {
             Connection connection = getConn();
@@ -669,7 +667,7 @@ public class HbaseUtil {
         }
     }
 
-    public static void deleteNameSpace(String name) throws Exception {
+    public void deleteNameSpace(String name) throws Exception {
         Admin admin = null;
         try {
             Connection connection = getConn();

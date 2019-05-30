@@ -25,10 +25,16 @@
   
   <dependencies>
 	  <dependency>
-			    <groupId>org.apache.hbase</groupId>
-			    <artifactId>hbase-client</artifactId>
-			    <version>1.3.2</version>
-			    <scope>provided</scope>
-			</dependency>
+		    <groupId>org.apache.hbase</groupId>
+		    <artifactId>hbase-client</artifactId>
+		    <version>1.3.2</version>
+		    <scope>provided</scope>
+		</dependency>
+		<dependency>
+		    <groupId>com.lm</groupId>
+		    <artifactId>hbase-core-adapter-entity</artifactId>
+		    <version>1.0.0</version>
+		    <scope>provided</scope>
+		</dependency>	
 	  </dependencies>
 </project>
