@@ -23,7 +23,7 @@ public class FilterFactory implements FilterFactoryInterface {
             if (item instanceof PrefixFilter) {
                 result.add((PrefixFilter) item);
             } else if (item instanceof SingleColumnValueFilter) {
-                result.add((PrefixFilter) item);
+                result.add((SingleColumnValueFilter) item);
             }
         }
         return result;
