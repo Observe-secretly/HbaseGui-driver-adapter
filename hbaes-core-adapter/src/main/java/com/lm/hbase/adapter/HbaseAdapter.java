@@ -525,7 +525,9 @@ public class HbaseAdapter implements HbaseAdapterInterface {
             hBaseAdmin = connection.getAdmin();
             hBaseAdmin.disableTable(hbaseTableName);
             hBaseAdmin.truncateTable(hbaseTableName, preserveSplits);
-            hBaseAdmin.enableTable(hbaseTableName);
+            if (!hBaseAdmin.isTableEnabled(hbaseTableName)) {
+                hBaseAdmin.enableTable(hbaseTableName);
+            }
         } finally {
             if (hBaseAdmin != null) {
                 try {
