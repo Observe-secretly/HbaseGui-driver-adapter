@@ -35,9 +35,12 @@ import org.apache.hadoop.hbase.io.compress.Compression.Algorithm;
 import org.apache.hadoop.hbase.util.Bytes;
 
 import com.lm.hbase.adapter.ColumnFamilyParam.ColumnFamilyFieldEnum;
+import com.lm.hbase.adapter.entity.ColumnFamilyDescriptor;
+import com.lm.hbase.adapter.entity.ColumnFamilyDescriptorEnum;
 import com.lm.hbase.adapter.entity.HBasePageModel;
 import com.lm.hbase.adapter.entity.HbaseQualifier;
 import com.lm.hbase.adapter.entity.QualifierValue;
+import com.lm.hbase.adapter.entity.TableDescriptor;
 
 public class HbaseAdapter implements HbaseAdapterInterface {
 
@@ -682,6 +685,64 @@ public class HbaseAdapter implements HbaseAdapterInterface {
                 e.printStackTrace();
             }
         }
+    }
+
+    @Override
+    public TableDescriptor getTableDescriptor(String name) throws Exception {
+        TableDescriptor result = new TableDescriptor();
+
+        TableName habseTableName = TableName.valueOf(name);
+        HTableDescriptor htableDescriptor = getDescribe(habseTableName);
+
+        result.setTableName(name);
+
+        List<ColumnFamilyDescriptor> cfDesc = new ArrayList<>();
+        for (HColumnDescriptor familie : htableDescriptor.getFamilies()) {
+            ColumnFamilyDescriptor item = new ColumnFamilyDescriptor();
+            Map<ColumnFamilyDescriptorEnum, String> defaultDesc = item.getDefaultDesc();
+            defaultDesc.put(ColumnFamilyDescriptorEnum.NAME, familie.getNameAsString());
+
+            defaultDesc.put(ColumnFamilyDescriptorEnum.BLOOMFILTER,
+                            familie.getValue(ColumnFamilyDescriptorEnum.BLOOMFILTER.name()));
+
+            defaultDesc.put(ColumnFamilyDescriptorEnum.VERSIONS,
+                            familie.getValue(ColumnFamilyDescriptorEnum.VERSIONS.name()));
+
+            defaultDesc.put(ColumnFamilyDescriptorEnum.IN_MEMORY,
+                            familie.getValue(ColumnFamilyDescriptorEnum.IN_MEMORY.name()));
+
+            defaultDesc.put(ColumnFamilyDescriptorEnum.KEEP_DELETED_CELLS,
+                            familie.getValue(ColumnFamilyDescriptorEnum.KEEP_DELETED_CELLS.name()));
+
+            defaultDesc.put(ColumnFamilyDescriptorEnum.DATA_BLOCK_ENCODING,
+                            familie.getValue(ColumnFamilyDescriptorEnum.DATA_BLOCK_ENCODING.name()));
+
+            defaultDesc.put(ColumnFamilyDescriptorEnum.TTL, familie.getValue(ColumnFamilyDescriptorEnum.TTL.name()));
+
+            defaultDesc.put(ColumnFamilyDescriptorEnum.COMPRESSION,
+                            familie.getValue(ColumnFamilyDescriptorEnum.COMPRESSION.name()));
+
+            defaultDesc.put(ColumnFamilyDescriptorEnum.MIN_VERSIONS,
+                            familie.getValue(ColumnFamilyDescriptorEnum.MIN_VERSIONS.name()));
+
+            defaultDesc.put(ColumnFamilyDescriptorEnum.BLOCKCACHE,
+                            familie.getValue(ColumnFamilyDescriptorEnum.BLOCKCACHE.name()));
+
+            defaultDesc.put(ColumnFamilyDescriptorEnum.BLOCKSIZE,
+                            familie.getValue(ColumnFamilyDescriptorEnum.BLOCKSIZE.name()));
+
+            defaultDesc.put(ColumnFamilyDescriptorEnum.REPLICATION_SCOPE,
+                            familie.getValue(ColumnFamilyDescriptorEnum.REPLICATION_SCOPE.name()));
+
+            item.setDefaultDesc(defaultDesc);
+            cfDesc.add(item);
+        }
+
+        result.setCfDesc(cfDesc);
+
+        result.sethDesc(htableDescriptor.toString());
+
+        return result;
     }
 
 }
