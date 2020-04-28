@@ -47,7 +47,7 @@ public class HbaseAdapter implements HbaseAdapterInterface {
     private Connection connection = null;
 
     public String getVersion() {
-        return "1.3.1";
+        return "2.2.4";
     }
 
     public void init(String zkPort, String zkQuorum, String hbaseMaster, String znodeParent) throws IOException {
