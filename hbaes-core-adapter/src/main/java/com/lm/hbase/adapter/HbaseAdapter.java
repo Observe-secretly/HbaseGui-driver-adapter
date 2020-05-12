@@ -9,6 +9,7 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.Vector;
 
+import com.lm.hbase.adapter.entity.*;
 import org.apache.commons.lang.StringUtils;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.Cell;
@@ -35,12 +36,6 @@ import org.apache.hadoop.hbase.io.compress.Compression.Algorithm;
 import org.apache.hadoop.hbase.util.Bytes;
 
 import com.lm.hbase.adapter.ColumnFamilyParam.ColumnFamilyFieldEnum;
-import com.lm.hbase.adapter.entity.ColumnFamilyDescriptor;
-import com.lm.hbase.adapter.entity.ColumnFamilyDescriptorEnum;
-import com.lm.hbase.adapter.entity.HBasePageModel;
-import com.lm.hbase.adapter.entity.HbaseQualifier;
-import com.lm.hbase.adapter.entity.QualifierValue;
-import com.lm.hbase.adapter.entity.TableDescriptor;
 
 public class HbaseAdapter implements HbaseAdapterInterface {
 
@@ -80,12 +75,40 @@ public class HbaseAdapter implements HbaseAdapterInterface {
     }
 
     /**
+     * 转换CompressionEnum成Algorithm类型
+     * @param compression
+     * @return
+     */
+    private Algorithm getCompression(CompressionEnum compression){
+        if(compression==null){
+            return Algorithm.NONE;
+        }
+
+        switch (compression) {
+            case BZIP2:
+                return Algorithm.BZIP2;
+            case GZ:
+                return Algorithm.GZ;
+            case LZ4:
+                return Algorithm.LZ4;
+            case LZO:
+                return Algorithm.LZO;
+            case ZSTD:
+                return Algorithm.ZSTD;
+            case SNAPPY:
+                return Algorithm.SNAPPY;
+            default:
+                return Algorithm.NONE;
+        }
+    }
+
+    /**
      * 创建表。提供更加高级的功能创建hbase表。
      * 
      * @param tableName 表名
      * @param columnFamilys 列族
      */
-    public void createTable(String tableName, byte[][] splitKeys, byte[] startKey, byte[] endKey, int numRegions,
+    public void createTable(String tableName, byte[][] splitKeys, byte[] startKey, byte[] endKey, int numRegions, CompressionEnum compression,
                             ColumnFamilyParam... columnFamilys) throws Exception {
         Admin hBaseAdmin = null;
         try {
@@ -104,7 +127,7 @@ public class HbaseAdapter implements HbaseAdapterInterface {
                     throw new Exception("COLUMN_FAMILY_NAME is null");
                 }
                 HColumnDescriptor columnDescriptor = new HColumnDescriptor(familyName.toString());
-                columnDescriptor.setCompressionType(Algorithm.SNAPPY);
+                columnDescriptor.setCompressionType(getCompression(compression));
 
                 Object timeToLive = item.get(ColumnFamilyFieldEnum.TIME_TO_LIVE);
                 if (timeToLive != null) {
