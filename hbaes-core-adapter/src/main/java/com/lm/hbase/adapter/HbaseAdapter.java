@@ -272,7 +272,7 @@ public class HbaseAdapter implements HbaseAdapterInterface {
                     return String.valueOf(Bytes.toInt(b));
                 case "short":
                     return String.valueOf(Bytes.toShort(b));
-                case "flout":
+                case "float":
                     return String.valueOf(Bytes.toFloat(b));
                 case "double":
                     return String.valueOf(Bytes.toDouble(b));
