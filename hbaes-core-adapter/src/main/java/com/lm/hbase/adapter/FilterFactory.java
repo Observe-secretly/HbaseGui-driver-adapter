@@ -166,6 +166,8 @@ public class FilterFactory implements FilterFactoryInterface {
                     return Bytes.toBytes(Double.parseDouble(filedValue));
                 case "bigdecimal":
                     return Bytes.toBytes(new BigDecimal(filedValue));
+                case "boolean":
+                    return Bytes.toBytes(Boolean.parseBoolean(filedValue));
                 default:
                     return Bytes.toBytes(filedValue);
             }
